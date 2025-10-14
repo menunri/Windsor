@@ -247,7 +247,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       backBtn.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Room List';
       backBtn.addEventListener('click', () => {
         detailsContainer.style.display = 'none';
-        document.getElementById('filter-container').style.display = 'block';
+        document.getElementById('filter-container').style.display = 'flex';
         document.getElementById('room-list-view').style.display = 'block';
         document.getElementById('mapPreview').style.display = 'block';
       });

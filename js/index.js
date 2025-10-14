@@ -1,6 +1,6 @@
 import { supabase } from '../serverClient.js';
 
-// Scrollable cards with indicators
+
 document.addEventListener('DOMContentLoaded', function() {
             const scrollContainer = document.getElementById('scrollContainer');
             const scrollLeftBtn = document.getElementById('scrollLeftBtn');
@@ -9,18 +9,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!scrollContainer) return;
             
-            // Calculate how many cards are visible at once
+          
             const card = document.querySelector('.card');
             if (!card) return;
             
             const cardWidth = card.offsetWidth + parseInt(getComputedStyle(card).marginRight);
             const visibleCards = Math.floor(scrollContainer.offsetWidth / cardWidth);
             
-            // Create indicator dots based on number of cards
+      
             const totalCards = document.querySelectorAll('.card').length;
             const pages = Math.ceil(totalCards / visibleCards);
             
-            // Clear existing indicators and create new ones
+        
             scrollIndicator.innerHTML = '';
             for (let i = 0; i < pages; i++) {
                 const dot = document.createElement('div');
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 scrollIndicator.appendChild(dot);
             }
             
-            // Scroll functions
+      
             scrollRightBtn.addEventListener('click', () => {
                 scrollContainer.scrollBy({ left: cardWidth * visibleCards, behavior: 'smooth' });
                 updateIndicatorsAfterScroll();
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateIndicatorsAfterScroll();
             });
             
-            // Touch/swipe support for mobile
+      
             let startX;
             let scrollLeft;
             
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 scrollContainer.scrollLeft = scrollLeft - walk;
             });
             
-            // Keyboard navigation
+      
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'ArrowLeft') {
                     scrollContainer.scrollBy({ left: -cardWidth * visibleCards, behavior: 'smooth' });
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Helper functions
+        
             function scrollToPage(pageIndex) {
                 scrollContainer.scrollTo({
                     left: pageIndex * cardWidth * visibleCards,
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             function updateIndicatorsAfterScroll() {
-                // Wait for scroll to complete then update indicators
+               
                 setTimeout(() => {
                     const scrollPos = scrollContainer.scrollLeft;
                     const currentPage = Math.round(scrollPos / (cardWidth * visibleCards));
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 500);
             }
             
-            // Auto-play (optional)
+   
             let autoScrollInterval = setInterval(() => {
                 if (isElementInViewport(scrollContainer)) {
                     scrollContainer.scrollBy({ left: cardWidth * visibleCards, behavior: 'smooth' });
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, 5000);
             
-            // Pause auto-scroll on hover
+        
             scrollContainer.addEventListener('mouseenter', () => {
                 clearInterval(autoScrollInterval);
             });
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 5000);
             });
             
-            // Check if element is in viewport
+      
             function isElementInViewport(el) {
                 const rect = el.getBoundingClientRect();
                 return (
@@ -132,10 +132,45 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+const cards = document.querySelectorAll('.residence-card');
 
-// DOMContentLoaded main logic
+cards.forEach(card => {
+
+
+  card.addEventListener('click', () => {
+    cards.forEach(c => {
+      c.classList.remove('active');
+      
+    });
+    card.classList.add('active');
+    
+  });
+
+  card.addEventListener('mousemove', (e) => {
+  const rect = card.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  const centerX = rect.width / 2;
+  const centerY = rect.height / 2;
+  const deltaX = (mouseX - centerX) / centerX;
+  const deltaY = (mouseY - centerY) / centerY; 
+
+  const rotateX = -(deltaY * 10); 
+  const rotateY = deltaX * 10;
+
+    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+    card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    });
+
+
+});        
+
+
 window.addEventListener('DOMContentLoaded', () => {
-    // Smooth scroll to home section
+   
     document.querySelectorAll('a[href="#home"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
@@ -155,7 +190,7 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Hamburger menu
+   
     const hamburger = document.querySelector('.hamburger');
     const mobileMenu = document.querySelector('.mobile-menu');
 
@@ -220,7 +255,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Modal controls
+
 function openLoginModal() {
     const modal = document.getElementById('loginModal');
     modal.classList.remove('hidden');
@@ -267,7 +302,7 @@ function togglePassword(fieldId, iconSpan) {
     }
 }
 
-// Authentication
+
 async function validateLoginForm() {
     const emailOrUsername = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
@@ -339,7 +374,7 @@ async function validateSignupForm() {
 
         alert('Signup successful! An OTP code has been sent to your email.');
 
-        // Show OTP modal
+     
         document.getElementById('otpEmail').value = email;
         closeSignupModal();
         openOtpModal();
@@ -376,14 +411,14 @@ async function verifyOtp() {
         const { data, error } = await supabase.auth.verifyOtp({
             email,
             token: otp,
-            type: 'signup' // critical: must be "signup"
+            type: 'signup' 
         });
 
         if (error) throw error;
 
         alert('Email verified successfully. You are now signed in!');
         closeOtpModal();
-        window.location.href = '../index.html'; // redirect after login
+        window.location.href = '../index.html'; 
 
     } catch (err) {
         alert('OTP verification failed: ' + err.message);
@@ -454,7 +489,7 @@ async function resendOtp() {
 
 
 
-// Close modals on outside click
+
 window.addEventListener('click', function(e) {
     if (e.target.classList.contains('modal-overlay')) {
         closeLoginModal();
@@ -462,7 +497,7 @@ window.addEventListener('click', function(e) {
     }
 });
 
-// ✅ Expose modal and auth functions globally for HTML onclick access
+
 window.openLoginModal = openLoginModal;
 window.resendOtp = resendOtp;
 window.closeLoginModal = closeLoginModal;

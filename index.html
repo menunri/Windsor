@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/hero-section.css">
-    <link rel="icon" href="/images/w-icon.png">
+    <link rel="icon" href="../Capstone Project Final-1/images/w-icon.png">
 
 
     <script type="module" src="js/index.js" defer></script>
@@ -26,13 +26,15 @@
                 <img src="images/navbar-logo.png" alt="Windsor Residence" height="60" loading="lazy" href onclick="window.location.href='#home'" style="cursor: pointer;">
             </div>
          
+            <!--
             <div class="navbar-center">
                 <a href="#home" aria-current="page" class="home-active">Home</a>
                 <a href="pages/search-page.html">Search</a>
                 <a href="#" onclick="openLoginModal()">Threads</a>
                 <a href="pages/about-us.html">About Us</a>
             </div>
-    
+    -->
+
             <div class="navbar-right">
                 <button onclick="openLoginModal()" class="desktop-signin">
                     Join / Sign In
@@ -48,9 +50,9 @@
         <!-- Mobile menu -->
         <div class="mobile-menu">
             <a href="#" class="mobile-active">Home</a>
-            <a href="/pages/search.html">Search</a>
+            <a href="pages/search-page.html">Search</a>
             <a href="#" onclick="openLoginModal()">Optibot</a>
-            <a href="/pages/about-us.html">About Us</a>
+            <a href="pages/about-us.html">About Us</a>
             <button onclick="openLoginModal()" class="mobile-signin">
                 Sign In
             </button>
@@ -58,37 +60,28 @@
     </div>
 
     <div class="page active">
-    <section class="hero" id="home">
-        <h1>Discover Your Next Home at <span>Hiyori</span>, <span>Hampton</span>, and <span>Windsor</span></h1>
-        <p>Source of home rentals and apartments for you!</p>
-
-       <!--<div class="search-bar">
-            <input type="text" placeholder="Search for apartments..." aria-label="Search apartments">
-            <button aria-label="Search">🔍</button>
+   <section class="hero" id="home">
+    <div class="hero-content">
+        <div class="heading">
+            <h1>Discover Your Next Home at <span>Hiyori</span>, <span>Hampton</span>, and <span>Windsor</span></h1>
+            <p>Find the perfect apartment or room that matches your lifestyle — comfort, convenience, and class all in one place.</p>
         </div>
-        --> 
-        <div class="residences">
-            <div class="residence-card">
-                <a href="#">
-                    <div class="residence-overlay">Hiyori Suites</div>
-                    <img src="images/hampton.jpg" alt="Hiyori Suites building" loading="lazy">
-                </a>
+        <div class="residences-slider">
+            <div class="residence-card active">
+                <div class="residence-overlay"><p>Windsor Residences</p></div>
+                <img src="images/windsor.jpg" alt="Windsor Residence building">
             </div>
             <div class="residence-card">
-                <a href="#">
-                    <div class="residence-overlay">Hampton Residence</div>
-                    <img src="images/hampton.jpg" alt="Hampton Residence building" loading="lazy">
-                </a>
+                <div class="residence-overlay"><p>Hampton Residences</p></div>
+                <img src="images/hampton.jpg" alt="Hampton Residence building">
             </div>
             <div class="residence-card">
-                <div class="residence-badge">Featured</div>
-                <a href="#">
-                    <div class="residence-overlay">Windsor Residence</div>
-                    <img src="images/windsor.jpg" alt="Windsor Residence building" loading="lazy">
-                </a>
+                <div class="residence-overlay"><p>Hiyori Suites</p></div>
+                <img src="images/hiyori.jpg" alt="Hiyori Suites building">
             </div>
         </div>
-    </section>
+    </div>
+</section>
     
  <!-- LOGIN MODAL -->
 <!--Log IN Page-->
@@ -380,6 +373,91 @@
             </div>
         </div>
     </section>
+
+    <!-- ABOUT US CONTENT -->
+<section class="about-section">
+    <div class="about-container">
+        <div class="about-intro">
+            <h2>Our Story</h2>
+            <p>
+                Founded in 2015, Windsor Residences began with a simple mission: to make finding the perfect home in Manila effortless and enjoyable. 
+                What started as a small team of real estate enthusiasts has grown into Manila's most trusted property platform.
+            </p>
+            <p>
+                Today, we help thousands of residents find their ideal homes, from cozy studios to premium penthouses, all equipped with modern amenities 
+                like pools, fitness centers, and smart living features.
+            </p>
+        </div>
+
+        <div class="mission-vision">
+            <div class="mission">
+                <h3><i class="fas fa-bullseye"></i> Our Mission</h3>
+                <p>To simplify property search through innovative technology while maintaining the human touch that makes finding a home special.</p>
+            </div>
+            <div class="vision">
+                <h3><i class="fas fa-eye"></i> Our Vision</h3>
+                <p>To become the most trusted and comprehensive real estate platform in the Philippines, connecting people with their perfect homes.</p>
+            </div>
+        </div>
+
+        <div class="features">
+            <h2>Why Choose Windsor Residences?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-search-location"></i>
+                    <h4>Comprehensive Search</h4>
+                    <p>Filter by rental range, location, amenities, and more to find exactly what you're looking for.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-vr-cardboard"></i>
+                    <h4>Virtual Tours</h4>
+                    <p>Explore properties from the comfort of your current home with our 360-degree virtual tours.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-robot"></i>
+                    <h4>AI Recommendations</h4>
+                    <p>Our Optibot learns your preferences to suggest properties you'll love.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-headset"></i>
+                    <h4>Dedicated Support</h4>
+                    <p>Our team is available 24/7 to answer your questions and guide you.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TEAM SECTION -->
+<section class="team-section">
+    <div class="team-container">
+        <h2>Meet Our Team</h2>
+        <p class="team-subtitle">The passionate people behind Windsor Residences</p>
+        
+        <div class="team-grid">
+            <div class="team-member">
+                <div class="member-photo" style="background-image: url('../images/team1.jpg');"></div>
+                <h4>Alexandra Reyes</h4>
+                <p>Founder & CEO</p>
+            </div>
+            <div class="team-member">
+                <div class="member-photo" style="background-image: url('../images/team2.jpg');"></div>
+                <h4>Michael Santos</h4>
+                <p>Head of Operations</p>
+            </div>
+            <div class="team-member">
+                <div class="member-photo" style="background-image: url('../images/team3.jpg');"></div>
+                <h4>Sarah Lim</h4>
+                <p>Customer Experience</p>
+            </div>
+            <div class="team-member">
+                <div class="member-photo" style="background-image: url('../images/team4.jpg');"></div>
+                <h4>James Wong</h4>
+                <p>Technology Director</p>
+            </div>
+        </div>
+    </div>
+</section>
 
     <!--Have more questions?-->
     <section class="section faq-section">

@@ -3,18 +3,23 @@
       font-family: 'Poppins', sans-serif;
     }
     
-    body {
-  background-color: #f5f5f5;
+body {
+  background: linear-gradient(to bottom right, #f8f8f3, #f4f1c6, #ffffff);
+  background-attachment: fixed;
+  font-family: 'Poppins', sans-serif;
   margin: 0;
   padding: 0;
-  font-family: 'Poppins', sans-serif;
-}   
-    h1 {
-      color: #006400;
-      margin: 20px 0;
-      text-align: center;
-    }
+}
 
+/* Page Title */
+h1 {
+  color: #004d00;
+  margin: 40px 0 30px;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
 
 /* ===== NAVBAR ===== */
 .navbar {
@@ -23,7 +28,7 @@
   left: 0;
   z-index: 1000;
   background: #f4f1c6;
-  padding: 10px 200px;
+  padding: 10px 20px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
@@ -271,158 +276,203 @@
     cursor: pointer;
 }
 
-/* My Posts Page Styles */
-#my-threads-list {
-  max-width: 1500px;
-  width: 90%;
-  margin: 0 auto;
-  padding: 0 20px;
+/* ========== MY POSTS SECTION (IMPROVED) ========== */
+
+h1 {
+  color: #006400;
+  margin: 40px 0 30px;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
 }
 
-    #user-info {
-    padding: 15px 20px;
-    background: #f9f9f9;
-    border-bottom: 1px solid #eee;
-    font-size: 12px;
-    color: #666;
-    }
-    
-    #my-threads-list {
-      display: flex;
+/* Container */
+#my-threads-list {
+  max-width: 1300px;
+  width: 90%;
+  margin: 0 auto 60px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+/* Each post card */
+.thread-box {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 0;  
-      list-style: none;
-    }
-    
-    .thread-box {
-       width: 100%;
-  max-width: 1400px;
-  margin-bottom: 20px;  
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      margin-bottom: 15px;
-    }
-    
-    .thread-box h3 {
-      color: #006400;
-      margin-bottom: 10px;
-    }
-    
-    .thread-box p {
-      color: #666;
-      margin-bottom: 15px;
-    }
-    
-    .thread-box button {
-  padding: 10px 20px;
-  border-radius: 6px;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+  border: 1px solid #e9e9e9;
+}
+
+.thread-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Title */
+.thread-box h3 {
+  color: #006400;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+/* Date */
+.thread-box p {
+  color: #777;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+/* Buttons container */
+.thread-box button {
+  border-radius: 8px;
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
-  transition: all 0.3s ease;
-  margin-right: 10px;
+  padding: 10px 16px;
   margin-bottom: 10px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
-    
-    .thread-box button:first-of-type {
+
+/* View Comments */
+.thread-box button:first-of-type {
   background-color: #006400;
-  color: white;
-  border: 2px solid #006400;
+  color: #fff;
+  border-color: #006400;
 }
-    
-    .thread-box button:last-of-type {
-  background-color: white;
+.thread-box button:first-of-type:hover {
+  background-color: #004d00;
+  box-shadow: 0 3px 8px rgba(0, 100, 0, 0.2);
+}
+
+/* Delete */
+.thread-box button:last-of-type {
+  background-color: transparent;
   color: #b71c1c;
-  border: 2px solid #b71c1c;
+  border-color: #b71c1c;
+}
+.thread-box button:last-of-type:hover {
+  background-color: #b71c1c;
+  color: white;
+  box-shadow: 0 3px 8px rgba(183, 28, 28, 0.25);
 }
 
-.thread-box button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+/* No posts state */
+.no-posts {
+  text-align: center;
+  color: #555;
+  padding: 60px 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  max-width: 600px;
+  margin: 60px auto;
+  font-size: 1rem;
 }
 
-.thread-box button:active {
-  transform: translateY(0);
-}
-
-/* Confirmation Modal Overlay */
+/* Confirm Modal Improvements */
 .confirm-modal {
-  display: none; /* hidden by default */
+  display: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(2px);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
   justify-content: center;
   align-items: center;
   z-index: 2000;
+  animation: fadeIn 0.2s ease;
 }
 
-/* Confirmation Box */
 .confirm-box {
-  background: #fff;
-  padding: 20px 25px;
-  border-radius: 12px;
+  background: #ffffff;
+  padding: 30px 35px;
+  border-radius: 16px;
   width: 90%;
-  max-width: 400px;
+  max-width: 420px;
   text-align: center;
-  box-shadow: 0px 5px 15px rgba(0,0,0,0.3);
-  animation: fadeInScale 0.3s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease;
 }
 
 .confirm-box h2 {
-  margin-bottom: 10px;
-  font-size: 20px;
-  font-weight: 600;
   color: #b71c1c;
+  margin-bottom: 12px;
+  font-weight: 600;
 }
 
 .confirm-box p {
-  margin-bottom: 20px;
-  font-size: 15px;
   color: #333;
+  font-size: 0.95rem;
+  margin-bottom: 25px;
+  line-height: 1.5;
 }
 
 .confirm-actions {
   display: flex;
-  justify-content: space-around;
-  gap: 10px;
+  justify-content: center;
+  gap: 15px;
 }
 
-/* Cancel Button */
+.btn-cancel,
+.btn-delete {
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
 .btn-cancel {
   background: #e0e0e0;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background 0.2s;
 }
 .btn-cancel:hover {
-  background: #d5d5d5;
+  background: #d0d0d0;
 }
-
 
 .btn-delete {
   background: #b71c1c;
   color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.2s;
 }
 .btn-delete:hover {
   background: #a31515;
 }
 
-/* Modal Background */
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  #my-threads-list {
+    grid-template-columns: 1fr;
+  }
+
+  .thread-box {
+    padding: 18px;
+  }
+}
+
+
+/* log out modal Background */
 .modal {
     display: none; /* Hidden by default */
     position: fixed;
@@ -507,4 +557,36 @@
     margin-bottom: 10px;
     margin-right: 0;
   }
+}
+
+@media (max-width: 800px) {
+    .hamburger.active .hamburger-line:first-child {
+        transform: rotate(55deg) translate(5px, 5px);
+    }
+    
+    .hamburger.active .hamburger-line:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .hamburger.active .hamburger-line:last-child {
+        transform: rotate(-50deg) translate(5px, -5px);
+    }
+
+    .navbar-center {
+        display: none;
+    }
+    
+    .hamburger {
+        display: flex;
+    }
+    
+    .desktop-my-account {
+        display: none;
+    }
+  }
+
+  @media (min-width: 800px) {
+    .mobile-menu {
+        display: none !important;
+    }
 }

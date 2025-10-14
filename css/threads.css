@@ -3,21 +3,31 @@
       font-family: 'Poppins', sans-serif;
     }
     
-    body {
-  background-color: #f5f5f5;
+ body {
+  background: linear-gradient(to bottom right, #f8f8f3, #f4f1c6, #ffffff);
+  background-attachment: fixed;
+  font-family: 'Poppins', sans-serif;
   margin: 0;
   padding: 0;
-  font-family: 'Poppins', sans-serif;
+}
+
+/* Page Title */
+h1 {
+  color: #004d00;
+  margin: 40px 0 30px;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
    
 /* ===== NAVBAR ===== */
 .navbar {
   position: sticky;
   top: 0;
-  left: 0;
   z-index: 1000;
   background: #f4f1c6;
-  padding: 10px 200px;
+  padding: 10px 20px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
@@ -358,7 +368,7 @@ h1 {
 }
 
 .thread-actions button {
-  padding: 8px 15px;
+  padding: 10px 15px;
   border-radius: 6px;
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
@@ -387,7 +397,10 @@ h1 {
   background-color: #f4f1c6;
   color: #006400;
   border: 1px solid #006400;
+  padding: 10px 15px;
+  margin: 10px 5px 0 0;
   border-radius: 10px;
+  transition: all 0.25s ease;
 }
 
 .comment:hover {
@@ -396,15 +409,17 @@ h1 {
 }
 
 .message {
-  background-color: #900C3F;
+  background-color: #006400;
   color: white;
-    border: 1px solid #f4f1c6;
+  border: 1px solid #f4f1c6;
+  padding: 10px 15px;
   border-radius: 10px;
 }
 
 .message:hover {
   background-color: #7a0a35;
   box-shadow: 0 6px 12px rgba(144, 12, 63, 0.4);
+  transition: all 0.25s ease;
 }
 
 /* Modal Background */
@@ -472,6 +487,10 @@ h1 {
     flex-direction: column;
   }
   
+  .thread-create button{
+    padding: 10px;
+  }
+
   .thread-actions {
     flex-direction: column;
   }
@@ -481,5 +500,37 @@ h1 {
   }
 }
 
+@media (max-width: 800px) {
+    .hamburger.active .hamburger-line:first-child {
+        transform: rotate(55deg) translate(5px, 5px);
+    }
+    
+    .hamburger.active .hamburger-line:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .hamburger.active .hamburger-line:last-child {
+        transform: rotate(-50deg) translate(5px, -5px);
+    }
 
+    .navbar-center {
+        display: none;
+    }
+    
+    .hamburger {
+        display: flex;
+    }
+    
+    .desktop-my-account {
+        display: none;
+    }
+
+    
+  }
+
+  @media (min-width: 800px) {
+    .mobile-menu {
+        display: none !important;
+    }
+}
 

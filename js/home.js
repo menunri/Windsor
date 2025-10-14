@@ -153,7 +153,7 @@ cards.forEach(card => {
   const deltaX = (mouseX - centerX) / centerX;
   const deltaY = (mouseY - centerY) / centerY; 
 
-  const rotateX = -(deltaY * 10); // 👈 invert here
+  const rotateX = -(deltaY * 10); 
   const rotateY = deltaX * 10;
 
     card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
