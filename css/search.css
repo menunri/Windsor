@@ -551,6 +551,7 @@ h1 {
   padding: 8px;
   box-shadow: 0 6px 18px rgba(0,0,0,0.45);
   pointer-events: auto;
+  touch-action: manipulation;
   -webkit-user-select: none;
   user-select: none;
 }
