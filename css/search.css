@@ -569,6 +569,8 @@ h1 {
   flex: 0 0 auto;
   opacity: 0.95;
   -webkit-font-smoothing: antialiased;
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 /* circular thumbnail overlay (Option 1) */
@@ -583,6 +585,8 @@ h1 {
   border: 3px solid rgba(255,255,255,0.12);
   transform: translateY(-6px); /* slightly raised for visual balance */
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 /* emphasize when touching */
@@ -607,22 +611,30 @@ h1 {
   .viewer-nav-btn {
     width: 128px;
     height: 96px;
+    pointer-events: auto;
+    touch-action: manipulation;
   }
 
   .viewer-nav-btn .thumb {
     width: 72px;
     height: 72px;
+    pointer-events: auto;
+    touch-action: manipulation;
   }
 
   .viewer-nav-btn .arrow {
     font-size: 1.4rem;
+    pointer-events: auto;
+    touch-action: manipulation;
   }
 }
 
 /* Tiny screens */
 @media (max-width: 420px) {
-  .viewer-nav-btn { width: 140px; height: 104px; border-radius: 10px; }
-  .viewer-nav-btn .thumb { width: 78px; height: 78px; transform: translateY(-4px); }
+  .viewer-nav-btn { width: 140px; height: 104px; border-radius: 10px; pointer-events: auto;
+  touch-action: manipulation;}
+  .viewer-nav-btn .thumb { width: 78px; height: 78px; transform: translateY(-4px); pointer-events: auto;
+  touch-action: manipulation;}
 }
 
 /* Back & Reserve buttons */
