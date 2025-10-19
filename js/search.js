@@ -99,6 +99,8 @@ function open360Viewer(imageUrls = [], startIndex = 0) {
         const canvas = container.querySelector('canvas') || (viewer && viewer.renderer && viewer.renderer.domElement);
         if (canvas) {
           canvas.style.touchAction = 'none';
+          canvas.style.pointerEvents = 'auto';
+          canvas.style.zIndex = 1; 
           canvas.setAttribute('touch-action', 'none');
           canvas.style.webkitTouchCallout = 'none';
         }

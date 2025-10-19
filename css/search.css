@@ -494,6 +494,7 @@ h1 {
 .viewer-overlay .panorama {
   pointer-events: auto;
   touch-action: none;
+  z-index: 1;  
 }
 
 /* viewer main image styling (panolens will create canvas) */
