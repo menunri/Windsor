@@ -252,3 +252,19 @@
   transform: translateX(-50%);
   z-index: 1;
 }
+
+
+/* Mobile style for circular preview */
+@media (max-width: 768px) {
+  #mapPreview {
+    top: 100px !important;
+    right: 10px !important;
+    width: 90px !important;
+    height: 90px !important;
+    border-radius: 50% !important;
+  }
+
+  .leaflet-control-zoom{
+    display: none;
+  }
+}
