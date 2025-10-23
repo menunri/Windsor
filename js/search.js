@@ -206,23 +206,6 @@ function open360Viewer(imageUrls = [], startIndex = 0) {
   return { viewer, container };
 }
 
-  exitBtn.addEventListener('touchstart', (e) => {
-    e.stopPropagation();
-    closeViewer();
-  });
-
-  prevBtn.addEventListener('touchstart', (e) => {
-    e.stopPropagation();
-    const newIndex = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
-    switchPanorama(newIndex);
-  });
-
-  nextBtn.addEventListener('touchstart', (e) => {
-    e.stopPropagation();
-    const newIndex = (currentIndex + 1) % imageUrls.length;
-    switchPanorama(newIndex);
-  });
-
 /* -------------------------
    Carousel creation (unchanged)
    ------------------------- */
