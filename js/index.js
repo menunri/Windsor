@@ -1,6 +1,6 @@
 import { supabase } from '../serverClient.js';
 
-/* --------------------------- UNIVERSAL REDIRECT --------------------------- */
+
 function goToHome() {
     const host = window.location.host;
     let path;
@@ -144,7 +144,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-/* --------------------------- MODALS --------------------------- */
+
 function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
 function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); document.body.style.overflow = ''; }
 function openSignupModal() { document.getElementById('signupModal').classList.add('active'); document.body.style.overflow = 'hidden'; closeLoginModal(); }
@@ -154,7 +154,7 @@ function closeOtpModal() { document.getElementById('otpModal').classList.add('hi
 function openForgotPasswordModal() { document.getElementById('forgotPasswordModal').classList.remove('hidden'); document.body.style.overflow = 'hidden'; closeLoginModal(); }
 function closeForgotPasswordModal() { document.getElementById('forgotPasswordModal').classList.add('hidden'); document.body.style.overflow = ''; }
 
-/* --------------------------- AUTH (SUPABASE) --------------------------- */
+
 async function validateLoginForm() {
     const emailOrUsername = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
@@ -169,7 +169,7 @@ async function validateLoginForm() {
         }
         if (error) throw error;
         closeLoginModal();
-        goToHome(); // ✅ redirect works locally & GitHub
+        goToHome(); 
     } catch (err) {
         alert(err.message);
     }
@@ -214,18 +214,31 @@ async function verifyOtp() {
 }
 
 async function handleForgotPassword() {
-    const email = document.getElementById('forgotEmail').value.trim();
-    if (!email) return alert('Please enter your email');
+    const emailInput = document.getElementById('forgotEmail');
+    const email = emailInput ? emailInput.value.trim() : '';
+    if (!email) {
+        return alert('Please enter your email');
+    }
 
     try {
-        const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+        // Environment-aware redirect (Localhost vs GitHub Pages)
+        const redirectTo = window.location.hostname === '127.0.0.1'
+            ? 'http://127.0.0.1:5502/pages/reset.html' 
+            : 'https://rayys-dev.github.io/lh-resort/pages/reset.html';
+
+        const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+
         if (error) throw error;
-        alert('Password reset link sent!');
+
+        alert('Password reset email sent — check your inbox (and spam). Follow the link to reset your password.');
         closeForgotPasswordModal();
+        if (emailInput) emailInput.value = '';
     } catch (err) {
-        alert(err.message);
+        console.error('Forgot password error:', err);
+        alert(err?.message || 'Failed to send reset email. Please try again.');
     }
 }
+
 
 async function resendOtp() {
     const email = document.getElementById('otpEmail').value.trim();

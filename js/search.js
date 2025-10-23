@@ -212,38 +212,68 @@ function createCarousel(imageUrls) {
   container.classList.add('carousel');
 
   // Main images
-  imageUrls.forEach((url, index) => {
+  const mainImages = imageUrls.map((url, index) => {
     const img = document.createElement('img');
     img.src = url;
     img.classList.add('main');
     if (index === 0) img.classList.add('active');
-
     img.addEventListener('click', () => open360Viewer(imageUrls, index));
     container.appendChild(img);
+    return img;
   });
 
   // Thumbnails
   const controls = document.createElement('div');
   controls.classList.add('carousel-controls');
-
-  imageUrls.forEach((url, index) => {
+  const thumbnails = imageUrls.map((url, index) => {
     const thumb = document.createElement('img');
     thumb.src = url;
     thumb.classList.add('carousel-thumb');
     if (index === 0) thumb.classList.add('active');
 
     thumb.addEventListener('click', () => {
-      const imgs = container.querySelectorAll('.main');
-      const thumbs = controls.querySelectorAll('.carousel-thumb');
-
-      imgs.forEach((img, i) => img.classList.toggle('active', i === index));
-      thumbs.forEach((t, i) => t.classList.toggle('active', i === index));
+      mainImages.forEach((img, i) => img.classList.toggle('active', i === index));
+      thumbnails.forEach((t, i) => t.classList.toggle('active', i === index));
     });
 
     controls.appendChild(thumb);
+    return thumb;
   });
 
   container.appendChild(controls);
+
+  // --- Swipe functionality for mobile ---
+  let startX = 0;
+  let isDragging = false;
+
+  container.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    isDragging = true;
+  });
+
+  container.addEventListener('touchend', (e) => {
+    if (!isDragging) return;
+    const deltaX = e.changedTouches[0].clientX - startX;
+    const threshold = 50; // Minimum swipe distance to trigger
+
+    let currentIndex = mainImages.findIndex(img => img.classList.contains('active'));
+    if (deltaX > threshold) {
+      // Swipe right → previous image
+      currentIndex = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
+    } else if (deltaX < -threshold) {
+      // Swipe left → next image
+      currentIndex = (currentIndex + 1) % imageUrls.length;
+    } else {
+      isDragging = false;
+      return; // Swipe too small, ignore
+    }
+
+    mainImages.forEach((img, i) => img.classList.toggle('active', i === currentIndex));
+    thumbnails.forEach((t, i) => t.classList.toggle('active', i === currentIndex));
+
+    isDragging = false;
+  });
+
   return container;
 }
 
