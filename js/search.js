@@ -25,8 +25,6 @@ function open360Viewer(imageUrls = [], startIndex = 0) {
   // Overlay container
   const container = document.createElement('div');
   container.classList.add('viewer-overlay');
-
-  // Append to body and lock scroll
   document.body.appendChild(container);
   document.body.classList.add('viewer-open');
   document.body.style.overflow = 'hidden';
@@ -38,7 +36,7 @@ function open360Viewer(imageUrls = [], startIndex = 0) {
   exitBtn.innerHTML = '&times;';
   container.appendChild(exitBtn);
 
-  // --- Prev button (arrow + attached thumbnail) ---
+  // --- Prev button ---
   const prevBtn = document.createElement('button');
   prevBtn.classList.add('viewer-nav-btn', 'left');
   prevBtn.setAttribute('aria-label', 'Previous panorama');
@@ -48,7 +46,7 @@ function open360Viewer(imageUrls = [], startIndex = 0) {
   `;
   container.appendChild(prevBtn);
 
-  // --- Next button (attached thumbnail + arrow) ---
+  // --- Next button ---
   const nextBtn = document.createElement('button');
   nextBtn.classList.add('viewer-nav-btn', 'right');
   nextBtn.setAttribute('aria-label', 'Next panorama');
@@ -58,15 +56,14 @@ function open360Viewer(imageUrls = [], startIndex = 0) {
   `;
   container.appendChild(nextBtn);
 
-  // Create Panolens viewer inside the overlay
+  // Panolens viewer
   viewer = new PANOLENS.Viewer({
-    container,            // Panolens will use this container
+    container,
     controlBar: false,
     autoHideInfospot: false,
     output: 'console'
   });
 
-  // helper: set the thumb background-image
   function setThumbBackground(buttonEl, url) {
     const thumb = buttonEl.querySelector('.thumb');
     if (!thumb) return;
@@ -79,9 +76,7 @@ function open360Viewer(imageUrls = [], startIndex = 0) {
     thumb.style.opacity = '1';
   }
 
-  
-
-  // Preload current, prev, next
+  // Preload adjacent images
   const prevIndexInit = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
   const nextIndexInit = (currentIndex + 1) % imageUrls.length;
   setThumbBackground(prevBtn, imageUrls[prevIndexInit]);
@@ -90,124 +85,95 @@ function open360Viewer(imageUrls = [], startIndex = 0) {
   preloadImage(imageUrls[nextIndexInit]);
   preloadImage(imageUrls[currentIndex]);
 
-  // build initial panorama and add to viewer
+  // Initial panorama
   panorama = new PANOLENS.ImagePanorama(imageUrls[currentIndex]);
   viewer.add(panorama);
 
-  // ensure Panolens canvas accepts touch gestures (improve mobile behavior)
   const ensureCanvasTouch = () => {
     setTimeout(() => {
-      try {
-        const canvas = container.querySelector('canvas') || (viewer && viewer.renderer && viewer.renderer.domElement);
-        if (canvas) {
-          canvas.style.touchAction = 'none';
-          canvas.style.position = 'absolute';
-          canvas.style.top = '0';
-          canvas.style.left = '0';
-          canvas.style.width = '100%';
-          canvas.style.height = '100%';
-          canvas.style.pointerEvents = 'auto';
-          canvas.style.zIndex = 1; 
-          canvas.setAttribute('touch-action', 'none');
-          canvas.style.webkitTouchCallout = 'none';
-        }
-      } catch (err) { /* ignore */ }
+      const canvas = container.querySelector('canvas') || (viewer?.renderer?.domElement);
+      if (canvas) {
+        canvas.style.touchAction = 'none';
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.pointerEvents = 'auto';
+        canvas.style.zIndex = 1;
+        canvas.setAttribute('touch-action', 'none');
+        canvas.style.webkitTouchCallout = 'none';
+      }
     }, 150);
   };
   ensureCanvasTouch();
 
-  // function to switch panorama smoothly, with preloading
   function switchPanorama(newIndex) {
     if (newIndex === currentIndex) return;
     const url = imageUrls[newIndex];
-
-    // Preload before switching for smoothness
     preloadImage(url).then(() => {
       const newPanorama = new PANOLENS.ImagePanorama(url);
-
-      // When entered, remove old one
       newPanorama.addEventListener('enter', () => {
-        try { viewer.remove(panorama); } catch (e) {}
+        try { viewer.remove(panorama); } catch {}
         panorama = newPanorama;
       });
-
       viewer.add(newPanorama);
       viewer.setPanorama(newPanorama);
-
       currentIndex = newIndex;
 
-      // Update thumbs
       const prevIdx = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
       const nextIdx = (currentIndex + 1) % imageUrls.length;
       setThumbBackground(prevBtn, imageUrls[prevIdx]);
       setThumbBackground(nextBtn, imageUrls[nextIdx]);
 
-      // Preload adjacent images
       preloadImage(imageUrls[(nextIdx + 1) % imageUrls.length]);
       preloadImage(imageUrls[(prevIdx - 1 + imageUrls.length) % imageUrls.length]);
-
-      // ensure canvas touch action remains intact after new panorama
       ensureCanvasTouch();
     });
   }
 
-  // Event listeners
-  nextBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
+  // --- Event listeners (click + touch) ---
+  function addInteraction(el, fn) {
+    el.addEventListener('click', fn);
+    el.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+      fn();
+    });
+  }
+
+  addInteraction(exitBtn, closeViewer);
+  addInteraction(nextBtn, () => {
     const newIndex = (currentIndex + 1) % imageUrls.length;
     switchPanorama(newIndex);
   });
-
-  prevBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
+  addInteraction(prevBtn, () => {
     const newIndex = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
     switchPanorama(newIndex);
   });
 
-  // keyboard support
+  // Keyboard support
   function handleKey(e) {
     if (e.key === 'Escape') closeViewer();
-    if (e.key === 'ArrowRight') nextBtn.click();
-    if (e.key === 'ArrowLeft') prevBtn.click();
+    if (e.key === 'ArrowRight') switchPanorama((currentIndex + 1) % imageUrls.length);
+    if (e.key === 'ArrowLeft') switchPanorama((currentIndex - 1 + imageUrls.length) % imageUrls.length);
   }
   window.addEventListener('keydown', handleKey);
 
-  // Click on overlay should not close viewer (user should explicit click exit)
   container.addEventListener('click', (ev) => ev.stopPropagation());
 
-  // Exit / cleanup
   function closeViewer() {
-    try {
-      window.removeEventListener('keydown', handleKey);
-      exitBtn.removeEventListener('click', closeViewer);
-      nextBtn.removeEventListener('click', switchPanorama);
-      prevBtn.removeEventListener('click', switchPanorama);
-    } catch (err) { /* ignore */ }
-
-    try {
-      viewer && viewer.dispose && viewer.dispose();
-    } catch (e) { /* ignore */ }
-
-    try {
-      container.remove();
-    } catch (e) { /* ignore */ }
-
-    // unlock scroll
+    try { window.removeEventListener('keydown', handleKey); } catch {}
+    try { viewer?.dispose?.(); } catch {}
+    try { container.remove(); } catch {}
     document.body.classList.remove('viewer-open');
     document.body.style.overflow = '';
   }
 
-  exitBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    closeViewer();
-  });
-
-  // Return viewer object if needed
   return { viewer, container };
 }
 
 /* -------------------------
-   Carousel creation (unchanged)
+   Carousel creation (updated for mobile touch)
    ------------------------- */
 function createCarousel(imageUrls) {
   const container = document.createElement('div');
@@ -233,9 +199,16 @@ function createCarousel(imageUrls) {
     thumb.classList.add('carousel-thumb');
     if (index === 0) thumb.classList.add('active');
 
-    thumb.addEventListener('click', () => {
+    const openMain = () => {
       mainImages.forEach((img, i) => img.classList.toggle('active', i === index));
       thumbnails.forEach((t, i) => t.classList.toggle('active', i === index));
+      open360Viewer(imageUrls, index);
+    };
+
+    thumb.addEventListener('click', openMain);
+    thumb.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+      openMain();
     });
 
     controls.appendChild(thumb);
@@ -256,19 +229,12 @@ function createCarousel(imageUrls) {
   container.addEventListener('touchend', (e) => {
     if (!isDragging) return;
     const deltaX = e.changedTouches[0].clientX - startX;
-    const threshold = 50; // Minimum swipe distance to trigger
-
+    const threshold = 50;
     let currentIndex = mainImages.findIndex(img => img.classList.contains('active'));
-    if (deltaX > threshold) {
-      // Swipe right → previous image
-      currentIndex = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
-    } else if (deltaX < -threshold) {
-      // Swipe left → next image
-      currentIndex = (currentIndex + 1) % imageUrls.length;
-    } else {
-      isDragging = false;
-      return; // Swipe too small, ignore
-    }
+
+    if (deltaX > threshold) currentIndex = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
+    else if (deltaX < -threshold) currentIndex = (currentIndex + 1) % imageUrls.length;
+    else { isDragging = false; return; }
 
     mainImages.forEach((img, i) => img.classList.toggle('active', i === currentIndex));
     thumbnails.forEach((t, i) => t.classList.toggle('active', i === currentIndex));
@@ -280,11 +246,10 @@ function createCarousel(imageUrls) {
 }
 
 /* -------------------------
-   Main app (auth, load rooms, show details)
-   Very similar to your original code with small improvements
+   Main app: auth, load rooms, show details
    ------------------------- */
 document.addEventListener('DOMContentLoaded', function () {
-  /*** Hamburger menu functionality ***/
+  // Hamburger menu
   const hamburger = document.querySelector('.hamburger');
   const mobileMenu = document.querySelector('.mobile-menu');
 
@@ -327,11 +292,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   const user = session.user;
 
   async function fetchRoomImages(roomId) {
-    const { data, error } = await supabase
-      .from('room_images')
-      .select('image_url')
-      .eq('room_id', roomId);
-
+    const { data } = await supabase.from('room_images').select('image_url').eq('room_id', roomId);
     return data || [];
   }
 
@@ -344,21 +305,12 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     let query = supabase.from('rooms').select('*').eq('is_available', true);
     if (location) query = query.eq('location', location);
-
     const { data, error } = await query;
 
-    if (error) {
-      listContainer.innerHTML = 'Error loading rooms.';
-      return;
-    }
-
-    if (!data || data.length === 0) {
-      listContainer.innerHTML = `<div class="empty-state"><p>No rooms available for this location.</p></div>`;
-      return;
-    }
+    if (error) return listContainer.innerHTML = 'Error loading rooms.';
+    if (!data || data.length === 0) return listContainer.innerHTML = `<div class="empty-state"><p>No rooms available for this location.</p></div>`;
 
     listContainer.innerHTML = '';
-
     for (const room of data) {
       const images = await fetchRoomImages(room.id);
       const exampleImage = images.length ? images[0].image_url : 'placeholder.jpg';
@@ -409,15 +361,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (error) return alert('Failed to load room details.');
 
     const images = await fetchRoomImages(roomId);
-    let gallery;
-
-    if (!images || images.length === 0) {
-      gallery = document.createElement('div');
-      gallery.classList.add('empty-state');
-      gallery.innerHTML = `<img src="images/no-data.gif" alt="No images"><p>No images available for this room.</p>`;
-    } else {
-      gallery = createCarousel(images.map(i => i.image_url));
-    }
+    const gallery = images.length ? createCarousel(images.map(i => i.image_url)) : (() => {
+      const div = document.createElement('div');
+      div.classList.add('empty-state');
+      div.innerHTML = `<img src="images/no-data.gif" alt="No images"><p>No images available for this room.</p>`;
+      return div;
+    })();
 
     const detailsContainer = document.getElementById('room-details-view');
     detailsContainer.innerHTML = '';
@@ -438,9 +387,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     reserveBtn.addEventListener('click', async () => {
       const today = new Date();
       const startDate = today.toISOString().split('T')[0];
-
-      const endDate = new Date(today);
-      endDate.setDate(endDate.getDate() + 3);
+      const endDate = new Date(today); endDate.setDate(endDate.getDate() + 3);
       const endDateStr = endDate.toISOString().split('T')[0];
 
       const { data: existing, error: checkError } = await supabase
@@ -451,15 +398,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         .eq('status', 'active')
         .gte('end_date', startDate);
 
-      if (checkError) {
-        alert('Error checking reservations. Try again.');
-        return;
-      }
-
-      if (existing && existing.length > 0) {
-        alert('You already have an active reservation for this room.');
-        return;
-      }
+      if (checkError) return alert('Error checking reservations. Try again.');
+      if (existing && existing.length > 0) return alert('You already have an active reservation for this room.');
 
       const { error } = await supabase.from('room_reservations').insert({
         user_id: user.id,
@@ -469,11 +409,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         status: 'active'
       });
 
-      if (error) {
-        alert('Failed to reserve room.');
-        return;
-      }
-
+      if (error) return alert('Failed to reserve room.');
       alert('Room reserved. Visit the site within 3 days.');
     });
 
@@ -499,13 +435,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     detailsContainer.style.display = 'block';
   }
 
-  // Filter change listener and initial load
   document.getElementById('filter')?.addEventListener('change', loadRooms);
   await loadRooms();
 });
 
 /* -------------------------
-   Logout modal handlers (unchanged)
+   Logout modal handlers
    ------------------------- */
 document.addEventListener('DOMContentLoaded', function () {
   const logoutBtn = document.getElementById('logoutBtn');
@@ -521,15 +456,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   closeLogoutModal?.addEventListener('click', () => logoutModal.style.display = 'none');
   cancelLogout?.addEventListener('click', () => logoutModal.style.display = 'none');
-
-  confirmLogout?.addEventListener('click', function () {
-    logout();
-  });
+  confirmLogout?.addEventListener('click', logout);
 
   window.addEventListener('click', function (e) {
-    if (e.target === logoutModal) {
-      logoutModal.style.display = 'none';
-    }
+    if (e.target === logoutModal) logoutModal.style.display = 'none';
   });
 });
 
