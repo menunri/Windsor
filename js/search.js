@@ -79,6 +79,8 @@ function open360Viewer(imageUrls = [], startIndex = 0) {
     thumb.style.opacity = '1';
   }
 
+  
+
   // Preload current, prev, next
   const prevIndexInit = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
   const nextIndexInit = (currentIndex + 1) % imageUrls.length;
@@ -203,6 +205,23 @@ function open360Viewer(imageUrls = [], startIndex = 0) {
   // Return viewer object if needed
   return { viewer, container };
 }
+
+  exitBtn.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+    closeViewer();
+  });
+
+  prevBtn.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+    const newIndex = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
+    switchPanorama(newIndex);
+  });
+
+  nextBtn.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+    const newIndex = (currentIndex + 1) % imageUrls.length;
+    switchPanorama(newIndex);
+  });
 
 /* -------------------------
    Carousel creation (unchanged)

@@ -484,7 +484,7 @@ h1 {
   align-items: center;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
-  touch-action: none; /* allow panolens to handle touches */
+  touch-action: none; 
   pointer-events: auto;
 }
 
