@@ -4,7 +4,8 @@
     }
     
     body {
-  background-color: #f5f5f5;
+  background: linear-gradient(to bottom right, #f8f8f3, #f4f1c6, #ffffff);
+  height: 100vh;
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif;
@@ -224,6 +225,51 @@
 }
 
 
+
+/* Mobile menu */
+.mobile-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 70%;
+    max-width: 300px;
+    height: 100%;
+    background: #f4f1c660;
+    backdrop-filter: blur(10px);
+    padding: 60px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: right 0.3s ease;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    z-index: 999;
+    text-align: center;
+}
+
+.mobile-menu.active {
+    right: 0;
+}
+
+.mobile-menu a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 600;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.mobile-signin {
+    margin-top: 20px;
+    padding: 12px;
+    background: #006400;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+
 /* Modal Background */
 .modal {
     display: none; /* Hidden by default */
@@ -389,7 +435,52 @@
       background: #f8d7da;
       border-radius: 5px;
     }
-    
+/* Responsive */
+@media (min-width: 1200px) and (max-width: 1500px){
+  .room {
+    margin: 10px 0 10px 250px;
+  }
+}
+
+@media (max-width: 1080px){
+  .room{
+    margin: 10px 0 10px 80px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 800px) {
+
+  .navbar-center {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .desktop-my-account {
+    display: none;
+  }
+
+  .navbar-left{
+    display: flex;
+    flex-wrap: wrap-reverse;
+
+  }
+
+  .hamburger.active .hamburger-line:first-child {
+    transform: rotate(55deg) translate(5px, 5px);
+  }
+
+  .hamburger.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+  }
+
+  .hamburger.active .hamburger-line:last-child {
+    transform: rotate(-50deg) translate(5px, -5px);
+  }
+}
     @media (max-width: 600px) {
       .container {
         padding: 15px;

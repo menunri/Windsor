@@ -1165,6 +1165,7 @@ html {
 .footer-bottom {
     margin-top: 50px;
     font-size: 13px;
+    text-align: center;
     color: #eee;
     border-top: 1px solid rgba(255,255,255,0.1);
     padding-top: 20px;

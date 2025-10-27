@@ -818,6 +818,7 @@ h1 {
 
 .footer-bottom {
   margin-top: 30px;
+  text-align: center;
   font-size: 13px;
   color: #eee;
   border-top: 1px solid rgba(255,255,255,0.1);
