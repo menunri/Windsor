@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment | Confirm Reservation</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; text-align: center; background: #f8f9fa; }
+    .qr-container { display: flex; justify-content: center; gap: 2rem; margin-top: 2rem; flex-wrap: wrap; }
+    .qr-box { background: #fff; padding: 1rem; border: 1px solid #ccc; border-radius: 10px; width: 250px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .qr-box img { width: 200px; height: 200px; object-fit: contain; margin-bottom: 0.5rem; }
+    .note { margin-top: 1rem; color: #555; }
+    .back-btn { margin-bottom: 1rem; background: #007bff; color: white; padding: 8px 14px; border: none; border-radius: 5px; cursor: pointer; }
+    .back-btn:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <button class="back-btn" onclick="location.href='../pages/search.html'">← Back to Search Page</button>
+
+  <h2>Complete Your Reservation Payment</h2>
+    <!--<p>
+    Reservation ID: 
+    <strong id="reservationId">Loading...</strong>
+    <button id="copyBtn" class="copy-btn">📋 Copy</button>
+    </p> -->
+
+    <form id="paymentProofForm" enctype="multipart/form-data" style="margin-top:2rem;">
+    <h3>Upload Payment Screenshot</h3>
+
+    <div>
+        <label for="reservationInput">Reservation ID:</label><br>
+        <input type="text" id="reservationInput" readonly style="width:300px; text-align:center;">
+    </div>
+
+    <div style="margin-top:1rem;">
+        <label for="paymentImage">Screenshot (JPG/PNG):</label><br>
+        <input type="file" id="paymentImage" accept="image/*" required>
+    </div>
+
+    <button type="submit" style="margin-top:1rem; padding:8px 16px;">Submit Payment Proof</button>
+    <p id="uploadStatus" style="color:#555; margin-top:1rem;"></p>
+    </form>
+
+  <p>Please scan one of the QR codes below to pay via GCash or PayMaya.</p>
+
+  <div id="status"></div>
+
+  <div class="qr-container">
+    <div class="qr-box">
+      <h3>GCash</h3>
+      <img id="gcashQR" alt="GCash QR" />
+    </div>
+    <div class="qr-box">
+      <h3>PayMaya</h3>
+      <img id="paymayaQR" alt="PayMaya QR" />
+    </div>
+  </div>
+
+  <p class="note">
+    After sending payment, please wait for the confirmation of the admin.
+  </p>
+
+ <script type="module" src="../js/payment.js"></script>
+
+</body>
+</html>

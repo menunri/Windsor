@@ -384,33 +384,69 @@ window.addEventListener('DOMContentLoaded', async () => {
     const reserveBtn = document.createElement('button');
     reserveBtn.classList.add('reserve-btn');
     reserveBtn.innerHTML = '<i class="fas fa-calendar-check"></i> Reserve This Room';
+
     reserveBtn.addEventListener('click', async () => {
-      const today = new Date();
-      const startDate = today.toISOString().split('T')[0];
-      const endDate = new Date(today); endDate.setDate(endDate.getDate() + 3);
-      const endDateStr = endDate.toISOString().split('T')[0];
+      try {
+        // Ensure we have a logged-in user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          alert('You must be logged in to reserve a room.');
+          return;
+        }
 
-      const { data: existing, error: checkError } = await supabase
-        .from('room_reservations')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('room_id', room.id)
-        .eq('status', 'active')
-        .gte('end_date', startDate);
+        const today = new Date();
+        const startDate = today.toISOString().split('T')[0];
+        const endDate = new Date(today);
+        endDate.setDate(endDate.getDate() + 3);
+        const endDateStr = endDate.toISOString().split('T')[0];
 
-      if (checkError) return alert('Error checking reservations. Try again.');
-      if (existing && existing.length > 0) return alert('You already have an active reservation for this room.');
+        // Check if user already has an active reservation for this room
+        const { data: existing, error: checkError } = await supabase
+          .from('room_reservations')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('room_id', room.id)
+          .eq('status', 'active')
+          .gte('end_date', startDate);
 
-      const { error } = await supabase.from('room_reservations').insert({
-        user_id: user.id,
-        room_id: room.id,
-        start_date: startDate,
-        end_date: endDateStr,
-        status: 'active'
-      });
+        if (checkError) {
+          console.error(checkError);
+          return alert('Error checking reservations. Try again.');
+        }
 
-      if (error) return alert('Failed to reserve room.');
-      alert('Room reserved. Visit the site within 3 days.');
+        if (existing && existing.length > 0) {
+          return alert('You already have an active reservation for this room.');
+        }
+
+        // Create new reservation
+        const { data: inserted, error } = await supabase
+          .from('room_reservations')
+          .insert({
+            user_id: user.id,
+            room_id: room.id,
+            start_date: startDate,
+            end_date: endDateStr,
+            status: 'active',
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error(error);
+          return alert('Failed to reserve room.');
+        }
+
+        alert('✅ Room reserved! You will now be redirected to complete your payment.');
+
+        // Wait briefly to ensure Supabase session persists across redirect
+        setTimeout(() => {
+          window.location.href = `../pages/payment.html?reservation_id=${inserted.id}`;
+        }, 400);
+
+      } catch (err) {
+        console.error(err);
+        alert('Unexpected error occurred.');
+      }
     });
 
     const details = document.createElement('div');
