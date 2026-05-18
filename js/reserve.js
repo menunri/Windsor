@@ -28,6 +28,7 @@ import { requireAuth } from '../protect.js';
         <h3>Your Room Reservation</h3>
         <p><strong>Room No:</strong> ${reservation.rooms.room_no}</p>
         <p><strong>Building:</strong> ${reservation.rooms.location}</p>
+        <p><strong>Status:</strong> ${reservation.status}</p>
         <p><strong>Visit Time Frame:</strong> ${reservation.start_date} to ${reservation.end_date}</p>
         <button id="cancelBtn">Cancel Reservation</button>
       `;
