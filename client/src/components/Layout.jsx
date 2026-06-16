@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import { Menu, X, Home, Search, Info, Shield } from 'lucide-react'
+import { Menu, X, Home, Search, Info } from 'lucide-react'
 
 export default function Layout() {
   const location = useLocation()
@@ -50,28 +50,17 @@ export default function Layout() {
               ))}
             </div>
 
-            {/* Right side - Admin link */}
-            <div className="flex items-center gap-3">
-              <Link
-                to="/admin/login"
-                className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
-              >
-                <Shield className="w-4 h-4" />
-                <span className="hidden sm:block">Admin</span>
-              </Link>
-
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg hover:bg-neutral-100"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="w-6 h-6 text-neutral-600" />
-                ) : (
-                  <Menu className="w-6 h-6 text-neutral-600" />
-                )}
-              </button>
-            </div>
+            {/* Right side - Mobile menu button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg hover:bg-neutral-100"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6 text-neutral-600" />
+              ) : (
+                <Menu className="w-6 h-6 text-neutral-600" />
+              )}
+            </button>
           </div>
 
           {/* Mobile Navigation */}

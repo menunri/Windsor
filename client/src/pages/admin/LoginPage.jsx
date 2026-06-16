@@ -107,13 +107,6 @@ export default function AdminLoginPage() {
             </button>
           </form>
         </div>
-
-        {/* Back to site */}
-        <div className="text-center mt-6">
-          <Link to="/" className="text-neutral-400 hover:text-white text-sm">
-            ← Back to website
-          </Link>
-        </div>
       </div>
     </div>
   )

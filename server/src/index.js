@@ -13,28 +13,23 @@ import uploadRoutes from './routes/upload.js';
 import aiRoutes from './routes/ai.js';
 import analyticsRoutes from './routes/analytics.js';
 
+// Import security middleware
+import { securityHeaders, corsOptions, loginLimiter, apiLimiter } from './middleware/security.js';
+import { requireBasicAuth } from './middleware/basicAuth.js';
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware - support multiple origins for development
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-  process.env.CLIENT_URL
-].filter(Boolean);
+// Apply security headers (Helmet)
+app.use(securityHeaders);
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS policy: Origin ${origin} not allowed`));
-    }
-  },
-  credentials: true
-}));
+// Apply CORS with restrictive origin policy
+app.use(cors(corsOptions));
+
+// Apply general API rate limiter
+app.use('/api', apiLimiter);
+
+// Parse JSON bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -44,9 +39,21 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
+// Auth routes (login, logout, refresh) - NOT protected by Basic Auth (need to be accessible)
+// But these routes have their own JWT authentication
 app.use('/api/admin/auth', adminAuthRoutes);
-app.use('/api/rooms', roomRoutes);
-app.use('/api/inquiries', inquiryRoutes);
+
+// Room routes - Basic Auth will be checked per-path inside the router
+// Public /api/rooms/* - accessible to all
+// Protected /api/rooms/admin/* - requires Basic Auth
+app.use('/api/rooms', requireBasicAuth, roomRoutes);
+
+// Inquiry routes - same as rooms
+// Public /api/inquiries/* - accessible to all  
+// Protected /api/inquiries/admin/* - requires Basic Auth
+app.use('/api/inquiries', requireBasicAuth, inquiryRoutes);
+
+// Public routes
 app.use('/api/upload', uploadRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
