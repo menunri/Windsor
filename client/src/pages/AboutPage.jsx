@@ -1,12 +1,80 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Home, MapPin, Phone, Mail, Clock } from 'lucide-react'
+import { Home, MapPin, Phone, Mail, Clock, CheckCircle, AlertCircle } from 'lucide-react'
+import api from '../services/api'
 
 export default function AboutPage() {
+  const [formData, setFormData] = useState({
+    inquirerName: '',
+    inquirerEmail: '',
+    message: ''
+  })
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    setError('')
+  }
+
+  const validateForm = () => {
+    const errors = []
+    if (!formData.inquirerName || formData.inquirerName.trim().length < 2) {
+      errors.push('Name must be at least 2 characters')
+    }
+    if (!formData.inquirerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.inquirerEmail)) {
+      errors.push('Please enter a valid email address')
+    }
+    if (!formData.message || formData.message.trim().length < 10) {
+      errors.push('Message must be at least 10 characters')
+    }
+    return errors
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    setSuccess(false)
+
+    // Client-side validation
+    const validationErrors = validateForm()
+    if (validationErrors.length > 0) {
+      setError(validationErrors.join('. '))
+      setLoading(false)
+      return
+    }
+
+    try {
+      await api.post('/inquiries', {
+        inquirerName: formData.inquirerName,
+        inquirerEmail: formData.inquirerEmail,
+        message: formData.message
+      })
+      
+      setSuccess(true)
+      setFormData({ inquirerName: '', inquirerEmail: '', message: '' })
+    } catch (err) {
+      console.error('Failed to submit inquiry:', err)
+      const details = err.response?.data?.details
+      if (details && details.length > 0) {
+        setError(details.join('. '))
+      } else {
+        setError(err.response?.data?.error || 'Failed to send message. Please try again.')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-primary-700 via-primary-600 to-secondary-600 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="relative bg-gradient-to-br from-primary-700 via-primary-600 to-secondary-600 text-white py-20 overflow-hidden group">
+        <div className="absolute inset-0 hero-image-reveal-2" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl lg:text-5xl font-bold mb-4">About Windsor Residence</h1>
           <p className="text-lg text-white/90 max-w-2xl mx-auto">
             Discover comfortable living spaces where comfort meets convenience. 
@@ -118,12 +186,79 @@ export default function AboutPage() {
 
             <div className="bg-white rounded-xl p-6 shadow-card">
               <h3 className="text-lg font-semibold text-neutral-900 mb-4">Send us a Message</h3>
-              <form className="space-y-4">
-                <input type="text" placeholder="Your Name" className="input" />
-                <input type="email" placeholder="Your Email" className="input" />
-                <textarea placeholder="Your Message" rows="4" className="input resize-none"></textarea>
-                <button type="submit" className="btn btn-primary w-full">Send Message</button>
-              </form>
+              
+              {success ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-secondary-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-secondary-600" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-neutral-900 mb-2">Message Sent!</h4>
+                  <p className="text-sm text-neutral-500 mb-4">
+                    Thank you for reaching out. We'll get back to you soon.
+                  </p>
+                  <button 
+                    onClick={() => setSuccess(false)}
+                    className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                  >
+                    Send another message
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {error && (
+                    <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+                  <div>
+                    <input
+                      type="text"
+                      name="inquirerName"
+                      value={formData.inquirerName}
+                      onChange={handleChange}
+                      placeholder="Your Name"
+                      required
+                      minLength={2}
+                      maxLength={100}
+                      className="input"
+                      disabled={loading}
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="email"
+                      name="inquirerEmail"
+                      value={formData.inquirerEmail}
+                      onChange={handleChange}
+                      placeholder="Your Email"
+                      required
+                      className="input"
+                      disabled={loading}
+                    />
+                  </div>
+                  <div>
+                    <textarea
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      placeholder="Your Message"
+                      rows={4}
+                      required
+                      minLength={10}
+                      className="input resize-none"
+                      disabled={loading}
+                    />
+                  </div>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary w-full"
+                    disabled={loading}
+                  >
+                    {loading ? 'Sending...' : 'Send Message'}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>

@@ -6,15 +6,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Import routes
-import authRoutes from './routes/auth.js';
-import userRoutes from './routes/users.js';
+import adminAuthRoutes from './routes/adminAuth.js';
 import roomRoutes from './routes/rooms.js';
-import reservationRoutes from './routes/reservations.js';
-import moveInRoutes from './routes/moveIns.js';
-import threadRoutes from './routes/threads.js';
-import messageRoutes from './routes/messages.js';
-import postRoutes from './routes/posts.js';
-import commentRoutes from './routes/comments.js';
+import inquiryRoutes from './routes/inquiries.js';
+import uploadRoutes from './routes/upload.js';
+import aiRoutes from './routes/ai.js';
+import analyticsRoutes from './routes/analytics.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,15 +44,12 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/rooms', roomRoutes);
-app.use('/api/reservations', reservationRoutes);
-app.use('/api/move-ins', moveInRoutes);
-app.use('/api/threads', threadRoutes);
-app.use('/api/messages', messageRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/comments', commentRoutes);
+app.use('/api/inquiries', inquiryRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -1,26 +1,25 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
-import { Star, MapPin, Bed, Bath, Square, ArrowLeft, Loader2, Calendar, MessageSquare } from 'lucide-react'
+import { useParams, Link } from 'react-router-dom'
+import { MapPin, Bed, Bath, Square, ArrowLeft, Loader2, MessageSquare, Send } from 'lucide-react'
 import { PageLoader } from '../components/LoadingSpinner'
-import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
+import AIChatWidget from '../components/AIChatWidget'
 import api from '../services/api'
 
 export default function RoomDetailPage() {
   const { id } = useParams()
-  const { isAuthenticated } = useAuth()
-  const { success, error: showError } = useToast()
-  const navigate = useNavigate()
+  const { showToast } = useToast()
 
   const [room, setRoom] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
-  const [showReservationForm, setShowReservationForm] = useState(false)
-  const [reserving, setReserving] = useState(false)
-  const [reservationData, setReservationData] = useState({
-    checkInDate: '',
-    checkOutDate: '',
-    guestCount: 1
+  const [showInquiryForm, setShowInquiryForm] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [inquiryData, setInquiryData] = useState({
+    inquirerName: '',
+    inquirerEmail: '',
+    inquirerPhone: '',
+    message: ''
   })
 
   useEffect(() => {
@@ -34,60 +33,63 @@ export default function RoomDetailPage() {
         setRoom(response.data.data)
       }
     } catch (error) {
-      showError('Failed to load room details')
+      showToast('Failed to load room details', 'error')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleReserve = async (e) => {
-    e.preventDefault()
-    if (!isAuthenticated) {
-      navigate('/login', { state: { from: `/rooms/${id}` } })
-      return
+  const validateInquiryForm = () => {
+    const errors = []
+    if (!inquiryData.inquirerName || inquiryData.inquirerName.trim().length < 2) {
+      errors.push('Name must be at least 2 characters')
     }
-
-    setReserving(true)
-    try {
-      const response = await api.post('/reservations', {
-        roomId: id,
-        ...reservationData
-      })
-      if (response.data.success) {
-        success('Reservation created successfully!')
-        navigate('/reserve')
-      }
-    } catch (err) {
-      showError(err.response?.data?.error || 'Failed to create reservation')
-    } finally {
-      setReserving(false)
+    if (!inquiryData.inquirerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inquiryData.inquirerEmail)) {
+      errors.push('Please enter a valid email address')
     }
+    if (!inquiryData.message || inquiryData.message.trim().length < 10) {
+      errors.push('Message must be at least 10 characters')
+    }
+    return errors
   }
 
-  const today = new Date().toISOString().split('T')[0]
+  const handleSubmitInquiry = async (e) => {
+    e.preventDefault()
+    setSubmitting(true)
 
-  const handleContactOwner = async () => {
-    if (!isAuthenticated) {
-      navigate('/login', { state: { from: `/rooms/${id}` } })
-      return
-    }
-
-    if (!room.ownerId || room.ownerId === user?.id) {
-      showError('You cannot message yourself')
+    // Client-side validation
+    const validationErrors = validateInquiryForm()
+    if (validationErrors.length > 0) {
+      showToast(validationErrors.join('. '), 'error')
+      setSubmitting(false)
       return
     }
 
     try {
-      const response = await api.post('/threads', {
-        recipientId: room.ownerId,
+      const response = await api.post('/inquiries', {
         roomId: id,
-        initialMessage: `Hi, I'm interested in the room "${room.title}" you listed on Windsor.`
+        ...inquiryData
       })
+
       if (response.data.success) {
-        navigate(`/threads/${response.data.data.threadId}`)
+        showToast('Inquiry submitted successfully! We will get back to you soon.', 'success')
+        setShowInquiryForm(false)
+        setInquiryData({
+          inquirerName: '',
+          inquirerEmail: '',
+          inquirerPhone: '',
+          message: ''
+        })
       }
-    } catch (err) {
-      showError(err.response?.data?.error || 'Failed to start conversation')
+    } catch (error) {
+      const details = error.response?.data?.details
+      if (details && details.length > 0) {
+        showToast(details.join('. '), 'error')
+      } else {
+        showToast(error.response?.data?.error || 'Failed to submit inquiry', 'error')
+      }
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -118,7 +120,7 @@ export default function RoomDetailPage() {
             className="inline-flex items-center gap-2 text-neutral-600 hover:text-neutral-900"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to search
+            Back to rooms
           </Link>
         </div>
       </div>
@@ -158,10 +160,11 @@ export default function RoomDetailPage() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h1 className="text-2xl font-bold text-neutral-900">{room.title}</h1>
-                  {room.location && (
+                  {room.unitNumber && (
                     <div className="flex items-center gap-1 text-neutral-500 mt-1">
                       <MapPin className="w-4 h-4" />
-                      {room.location}
+                      Unit {room.unitNumber}
+                      {room.floor && ` • Floor ${room.floor}`}
                     </div>
                   )}
                 </div>
@@ -172,26 +175,6 @@ export default function RoomDetailPage() {
                   <p className="text-sm text-neutral-500">per month</p>
                 </div>
               </div>
-
-              {/* Rating */}
-              {room.reviewCount > 0 && (
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-5 h-5 ${
-                          i < Math.round(room.avgRating)
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-neutral-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="font-medium text-neutral-700">{room.avgRating.toFixed(1)}</span>
-                  <span className="text-neutral-500">({room.reviewCount} reviews)</span>
-                </div>
-              )}
 
               {/* Features */}
               <div className="grid grid-cols-3 gap-4 py-6 border-t border-b border-neutral-200">
@@ -249,10 +232,10 @@ export default function RoomDetailPage() {
             </div>
           </div>
 
-          {/* Sidebar - Reservation Form */}
+          {/* Sidebar - Inquiry Form */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl p-6 shadow-card sticky top-24">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-4">Reserve This Room</h3>
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">Interested in this room?</h3>
               
               <div className="mb-4">
                 <p className="text-2xl font-bold text-primary-600">
@@ -261,53 +244,66 @@ export default function RoomDetailPage() {
                 </p>
               </div>
 
-              {showReservationForm ? (
-                <form onSubmit={handleReserve} className="space-y-4">
+              <p className="text-neutral-600 text-sm mb-4">
+                Have questions or want to schedule a viewing? Send us an inquiry and we'll get back to you shortly.
+              </p>
+
+              {showInquiryForm ? (
+                <form onSubmit={handleSubmitInquiry} className="space-y-4">
                   <div>
-                    <label className="label">Check-in Date</label>
+                    <label className="label">Your Name *</label>
                     <input
-                      type="date"
-                      value={reservationData.checkInDate}
-                      onChange={(e) => setReservationData(prev => ({ ...prev, checkInDate: e.target.value }))}
-                      min={today}
+                      type="text"
+                      value={inquiryData.inquirerName}
+                      onChange={(e) => setInquiryData(prev => ({ ...prev, inquirerName: e.target.value }))}
+                      placeholder="Juan Dela Cruz"
                       className="input"
                       required
                     />
                   </div>
                   <div>
-                    <label className="label">Check-out Date</label>
+                    <label className="label">Email Address *</label>
                     <input
-                      type="date"
-                      value={reservationData.checkOutDate}
-                      onChange={(e) => setReservationData(prev => ({ ...prev, checkOutDate: e.target.value }))}
-                      min={reservationData.checkInDate || today}
+                      type="email"
+                      value={inquiryData.inquirerEmail}
+                      onChange={(e) => setInquiryData(prev => ({ ...prev, inquirerEmail: e.target.value }))}
+                      placeholder="juan@email.com"
                       className="input"
                       required
                     />
                   </div>
                   <div>
-                    <label className="label">Number of Guests</label>
-                    <select
-                      value={reservationData.guestCount}
-                      onChange={(e) => setReservationData(prev => ({ ...prev, guestCount: parseInt(e.target.value) }))}
+                    <label className="label">Phone Number</label>
+                    <input
+                      type="tel"
+                      value={inquiryData.inquirerPhone}
+                      onChange={(e) => setInquiryData(prev => ({ ...prev, inquirerPhone: e.target.value }))}
+                      placeholder="09123456789"
                       className="input"
-                    >
-                      <option value="1">1 Guest</option>
-                      <option value="2">2 Guests</option>
-                      <option value="3">3 Guests</option>
-                    </select>
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Your Message *</label>
+                    <textarea
+                      value={inquiryData.message}
+                      onChange={(e) => setInquiryData(prev => ({ ...prev, message: e.target.value }))}
+                      placeholder="I'm interested in this room and would like to schedule a viewing..."
+                      rows={4}
+                      className="input"
+                      required
+                    />
                   </div>
                   <button
                     type="submit"
-                    disabled={reserving}
+                    disabled={submitting}
                     className="btn btn-primary w-full flex items-center justify-center gap-2"
                   >
-                    {reserving && <Loader2 className="w-4 h-4 animate-spin" />}
-                    {reserving ? 'Reserving...' : 'Reserve Now'}
+                    {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {submitting ? 'Sending...' : 'Send Inquiry'}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setShowReservationForm(false)}
+                    onClick={() => setShowInquiryForm(false)}
                     className="btn btn-ghost w-full"
                   >
                     Cancel
@@ -315,28 +311,20 @@ export default function RoomDetailPage() {
                 </form>
               ) : (
                 <button
-                  onClick={() => setShowReservationForm(true)}
+                  onClick={() => setShowInquiryForm(true)}
                   className="btn btn-primary w-full flex items-center justify-center gap-2"
                 >
-                  <Calendar className="w-5 h-5" />
-                  Reserve Room
-                </button>
-              )}
-
-              {/* Contact Owner Button */}
-              {room.ownerId && room.ownerId !== user?.id && (
-                <button
-                  onClick={handleContactOwner}
-                  className="btn btn-secondary w-full flex items-center justify-center gap-2 mt-3"
-                >
                   <MessageSquare className="w-5 h-5" />
-                  Contact Owner
+                  Send Inquiry
                 </button>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* AI Chat Widget */}
+      {room && <AIChatWidget room={room} />}
     </div>
   )
 }

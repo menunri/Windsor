@@ -8,9 +8,9 @@ const router = express.Router();
 
 /**
  * GET /api/rooms
- * Get all rooms with optional filtering
+ * Get all active rooms (public - no auth required)
  */
-router.get('/', optionalAuth, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { 
       page = 1, 
@@ -42,11 +42,10 @@ router.get('/', optionalAuth, async (req, res) => {
       filters.push({ column: 'bathrooms', operator: 'gte', value: parseFloat(bathrooms) });
     }
     if (search) {
-      // Supabase ilike is case-insensitive
       filters.push({ column: 'title', operator: 'ilike', value: `%${sanitizeInput(search)}%` });
     }
 
-    // Add is_active filter
+    // Add is_active filter for public access
     filters.push({ column: 'is_active', operator: 'eq', value: true });
 
     const { rows: rooms, error, count } = await query('rooms', {
@@ -77,9 +76,9 @@ router.get('/', optionalAuth, async (req, res) => {
 
 /**
  * GET /api/rooms/:id
- * Get single room by ID
+ * Get single room by ID (public - no auth required)
  */
-router.get('/:id', optionalAuth, async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -107,11 +106,102 @@ router.get('/:id', optionalAuth, async (req, res) => {
 });
 
 /**
- * POST /api/rooms
- * Create a new room (admin/owner only)
+ * ADMIN ROUTES - Require authentication
  */
-router.post('/', authenticate, async (req, res) => {
+
+/**
+ * GET /api/rooms/admin/list
+ * Get all rooms including inactive (admin only)
+ */
+router.get('/admin/list', authenticate, async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return errorResponse(res, 403, 'Access denied');
+    }
+
+    const { 
+      page = 1, 
+      limit = 20, 
+      isActive 
+    } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
+
+    const filters = [];
+
+    if (isActive !== undefined) {
+      filters.push({ column: 'is_active', operator: 'eq', value: isActive === 'true' });
+    }
+
+    const { rows: rooms, error, count } = await query('rooms', {
+      select: '*',
+      filters,
+      order: { column: 'created_at', ascending: false },
+      limit: limitNum,
+      offset,
+      count: 'exact'
+    });
+
+    if (error) throw error;
+
+    return successResponse(res, 200, 'Rooms retrieved', {
+      rooms: rooms.map(room => formatRoom(room)),
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limitNum)
+      }
+    });
+  } catch (error) {
+    console.error('Get rooms error:', error);
+    return errorResponse(res, 500, 'Failed to retrieve rooms', error.message);
+  }
+});
+
+/**
+ * GET /api/rooms/admin/:id
+ * Get single room by ID (admin only - includes inactive rooms)
+ */
+router.get('/admin/:id', authenticate, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return errorResponse(res, 403, 'Access denied');
+    }
+
+    const { id } = req.params;
+
+    const { rows, error } = await query('rooms', {
+      select: '*',
+      filters: [{ column: 'id', operator: 'eq', value: id }],
+      single: true
+    });
+
+    if (error) throw error;
+    if (rows.length === 0) {
+      return notFoundResponse(res, 'Room');
+    }
+
+    const room = formatRoom(rows[0]);
+    return successResponse(res, 200, 'Room retrieved', room);
+  } catch (error) {
+    console.error('Get room error:', error);
+    return errorResponse(res, 500, 'Failed to retrieve room', error.message);
+  }
+});
+
+/**
+ * POST /api/rooms/admin
+ * Create a new room (admin only)
+ */
+router.post('/admin', authenticate, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return errorResponse(res, 403, 'Access denied');
+    }
+
     const { 
       title, description, price, bedrooms, bathrooms, 
       area, floor, unitNumber, images, amenities 
@@ -140,9 +230,8 @@ router.post('/', authenticate, async (req, res) => {
       bathrooms: parseFloat(bathrooms),
       area: area ? parseFloat(area) : null,
       floor: floor ? parseInt(floor) : null,
-      unit_number: sanitizeInput(unitNumber),
+      unit_number: unitNumber ? sanitizeInput(unitNumber) : null,
       images: images ? (typeof images === 'string' ? JSON.parse(images) : images) : [],
-      owner_id: req.user.userId,
       is_active: true
     };
 
@@ -174,20 +263,24 @@ router.post('/', authenticate, async (req, res) => {
 });
 
 /**
- * PUT /api/rooms/:id
- * Update room (owner only)
+ * PUT /api/rooms/admin/:id
+ * Update room (admin only)
  */
-router.put('/:id', authenticate, async (req, res) => {
+router.put('/admin/:id', authenticate, async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return errorResponse(res, 403, 'Access denied');
+    }
+
     const { id } = req.params;
     const { 
       title, description, price, bedrooms, bathrooms, 
       area, floor, unitNumber, images, amenities, isActive 
     } = req.body;
 
-    // Check ownership
+    // Check if room exists
     const { rows: existing } = await query('rooms', {
-      select: 'owner_id',
+      select: 'id',
       filters: [{ column: 'id', operator: 'eq', value: id }],
       single: true
     });
@@ -196,19 +289,15 @@ router.put('/:id', authenticate, async (req, res) => {
       return notFoundResponse(res, 'Room');
     }
 
-    if (existing[0].owner_id !== req.user.userId) {
-      return errorResponse(res, 403, 'Not authorized to update this room');
-    }
-
     const updates = {};
     if (title !== undefined) updates.title = sanitizeInput(title);
     if (description !== undefined) updates.description = sanitizeInput(description);
     if (price !== undefined) updates.price = parseFloat(price);
     if (bedrooms !== undefined) updates.bedrooms = parseInt(bedrooms);
     if (bathrooms !== undefined) updates.bathrooms = parseFloat(bathrooms);
-    if (area !== undefined) updates.area = parseFloat(area);
-    if (floor !== undefined) updates.floor = parseInt(floor);
-    if (unitNumber !== undefined) updates.unit_number = sanitizeInput(unitNumber);
+    if (area !== undefined) updates.area = area ? parseFloat(area) : null;
+    if (floor !== undefined) updates.floor = floor ? parseInt(floor) : null;
+    if (unitNumber !== undefined) updates.unit_number = unitNumber ? sanitizeInput(unitNumber) : null;
     if (images !== undefined) updates.images = typeof images === 'string' ? JSON.parse(images) : images;
     if (isActive !== undefined) updates.is_active = isActive;
     updates.updated_at = new Date().toISOString();
@@ -226,6 +315,27 @@ router.put('/:id', authenticate, async (req, res) => {
 
     if (error) throw error;
 
+    // Handle amenities if provided
+    if (amenities !== undefined) {
+      // Remove existing amenities
+      await supabase
+        .from('room_amenities')
+        .delete()
+        .eq('room_id', id);
+
+      // Add new amenities
+      if (amenities.length > 0) {
+        const amenityInserts = amenities.map(amenityId => ({
+          room_id: id,
+          amenity_id: amenityId
+        }));
+        
+        await supabase
+          .from('room_amenities')
+          .insert(amenityInserts);
+      }
+    }
+
     return successResponse(res, 200, 'Room updated successfully', formatRoom(data));
   } catch (error) {
     console.error('Update room error:', error);
@@ -234,26 +344,26 @@ router.put('/:id', authenticate, async (req, res) => {
 });
 
 /**
- * DELETE /api/rooms/:id
- * Delete room (owner only)
+ * DELETE /api/rooms/admin/:id
+ * Delete room (admin only - soft delete)
  */
-router.delete('/:id', authenticate, async (req, res) => {
+router.delete('/admin/:id', authenticate, async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return errorResponse(res, 403, 'Access denied');
+    }
+
     const { id } = req.params;
 
-    // Check ownership
+    // Check if room exists
     const { rows: existing } = await query('rooms', {
-      select: 'owner_id',
+      select: 'id',
       filters: [{ column: 'id', operator: 'eq', value: id }],
       single: true
     });
 
     if (existing.length === 0) {
       return notFoundResponse(res, 'Room');
-    }
-
-    if (existing[0].owner_id !== req.user.userId) {
-      return errorResponse(res, 403, 'Not authorized to delete this room');
     }
 
     // Soft delete
@@ -268,51 +378,6 @@ router.delete('/:id', authenticate, async (req, res) => {
   } catch (error) {
     console.error('Delete room error:', error);
     return errorResponse(res, 500, 'Failed to delete room', error.message);
-  }
-});
-
-/**
- * GET /api/rooms/:id/availability
- * Check room availability for dates
- */
-router.get('/:id/availability', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { startDate, endDate } = req.query;
-
-    if (!startDate || !endDate) {
-      return validationErrorResponse(res, ['Start date and end date are required']);
-    }
-
-    // Get reservations that overlap with the requested dates
-    const { rows, error } = await query('reservations', {
-      select: 'id',
-      filters: [
-        { column: 'room_id', operator: 'eq', value: id },
-        { column: 'status', operator: 'in', value: ['confirmed', 'pending'] }
-      ]
-    });
-
-    if (error) throw error;
-
-    // Simple check - if there are any overlapping reservations, room is not available
-    // More sophisticated date overlap logic would require raw SQL or PostgREST
-    const { rows: overlappingReservations } = await query('reservations', {
-      select: 'id',
-      filters: [
-        { column: 'room_id', operator: 'eq', value: id },
-        { column: 'status', operator: 'in', value: ['confirmed', 'pending'] },
-        { column: 'check_in_date', operator: 'lte', value: endDate },
-        { column: 'check_out_date', operator: 'gte', value: startDate }
-      ]
-    });
-
-    const isAvailable = overlappingReservations.length === 0;
-
-    return successResponse(res, 200, 'Availability checked', { isAvailable });
-  } catch (error) {
-    console.error('Check availability error:', error);
-    return errorResponse(res, 500, 'Failed to check availability', error.message);
   }
 });
 
@@ -332,8 +397,6 @@ function formatRoom(room) {
     unitNumber: room.unit_number,
     images: typeof room.images === 'string' ? JSON.parse(room.images) : room.images || [],
     isActive: room.is_active,
-    avgRating: room.avg_rating ? parseFloat(room.avg_rating) : 0,
-    reviewCount: room.review_count ? parseInt(room.review_count) : 0,
     ownerId: room.owner_id,
     createdAt: room.created_at,
     updatedAt: room.updated_at

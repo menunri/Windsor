@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search, Filter, SlidersHorizontal, X, MapPin, Bed, Bath, DollarSign } from 'lucide-react'
+import { Search, Filter, SlidersHorizontal, X, MapPin, Bed, Bath, DollarSign, Sparkles, Loader2 } from 'lucide-react'
 import RoomCard from '../components/RoomCard'
 import { PageLoader, RoomCardSkeleton } from '../components/LoadingSpinner'
 import api from '../services/api'
@@ -20,6 +20,10 @@ export default function SearchPage() {
     bedrooms: '',
     bathrooms: ''
   })
+
+  // AI search interpretation state
+  const [aiInterpretation, setAiInterpretation] = useState(null)
+  const [isInterpreting, setIsInterpreting] = useState(false)
 
   useEffect(() => {
     fetchRooms()
@@ -51,9 +55,50 @@ export default function SearchPage() {
     }
   }
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault()
-    updateSearchParams({ search: filters.search })
+    
+    if (!filters.search.trim()) {
+      setAiInterpretation(null)
+      updateSearchParams({})
+      return
+    }
+
+    setIsInterpreting(true)
+    setAiInterpretation(null)
+
+    try {
+      // Send to AI for interpretation
+      const response = await api.post('/ai/interpret-search', {
+        query: filters.search
+      })
+
+      if (response.data.success && response.data.data.isNaturalLanguage) {
+        const interpreted = response.data.data
+        setAiInterpretation(interpreted)
+
+        // Build params from AI interpretation
+        const newParams = {}
+        if (interpreted.filters?.minPrice) newParams.minPrice = interpreted.filters.minPrice
+        if (interpreted.filters?.maxPrice) newParams.maxPrice = interpreted.filters.maxPrice
+        if (interpreted.filters?.bedrooms) newParams.bedrooms = interpreted.filters.bedrooms
+        if (interpreted.filters?.bathrooms) newParams.bathrooms = interpreted.filters.bathrooms
+        // Keep the original search as keywords
+        newParams.search = filters.search
+
+        updateSearchParams(newParams)
+      } else {
+        // Regular keyword search
+        setAiInterpretation(null)
+        updateSearchParams({ search: filters.search })
+      }
+    } catch (error) {
+      console.error('Search interpretation failed:', error)
+      // Fallback to regular search
+      updateSearchParams({ search: filters.search })
+    } finally {
+      setIsInterpreting(false)
+    }
   }
 
   const handleFilterChange = (key, value) => {
@@ -72,6 +117,7 @@ export default function SearchPage() {
 
   const clearFilters = () => {
     setFilters({ search: '', minPrice: '', maxPrice: '', bedrooms: '', bathrooms: '' })
+    setAiInterpretation(null)
     setSearchParams({})
   }
 
@@ -227,6 +273,51 @@ export default function SearchPage() {
             </button>
           )}
         </div>
+
+        {/* AI Interpretation Display */}
+        {isInterpreting && (
+          <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6 flex items-center gap-3">
+            <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
+            <span className="text-primary-700">AI is interpreting your search...</span>
+          </div>
+        )}
+
+        {aiInterpretation && !isInterpreting && (
+          <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-primary-600" />
+              <span className="font-medium text-primary-800">AI Interpretation</span>
+            </div>
+            <p className="text-sm text-primary-700 mb-3">{aiInterpretation.explanation}</p>
+            <div className="flex flex-wrap gap-2">
+              {aiInterpretation.filters?.minPrice && (
+                <span className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full">
+                  Min: ₱{Number(aiInterpretation.filters.minPrice).toLocaleString()}
+                </span>
+              )}
+              {aiInterpretation.filters?.maxPrice && (
+                <span className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full">
+                  Max: ₱{Number(aiInterpretation.filters.maxPrice).toLocaleString()}
+                </span>
+              )}
+              {aiInterpretation.filters?.bedrooms && (
+                <span className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full">
+                  {aiInterpretation.filters.bedrooms}+ bedrooms
+                </span>
+              )}
+              {aiInterpretation.filters?.bathrooms && (
+                <span className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full">
+                  {aiInterpretation.filters.bathrooms}+ bathrooms
+                </span>
+              )}
+              {aiInterpretation.amenities?.map((amenity, i) => (
+                <span key={i} className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full">
+                  {amenity}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <RoomCardSkeleton />

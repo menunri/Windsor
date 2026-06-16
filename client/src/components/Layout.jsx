@@ -1,28 +1,17 @@
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { Menu, X, User, LogOut, Home, Search, MessageSquare, ChevronDown } from 'lucide-react'
+import { Menu, X, Home, Search, Info, Shield } from 'lucide-react'
 
 export default function Layout() {
-  const { user, isAuthenticated, logout } = useAuth()
   const location = useLocation()
-  const navigate = useNavigate()
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-
-  const handleLogout = () => {
-    logout()
-    navigate('/')
-    setIsDropdownOpen(false)
-  }
 
   const isActive = (path) => location.pathname === path
 
   const navLinks = [
     { path: '/', label: 'Home', icon: Home },
-    { path: '/search', label: 'Search', icon: Search },
-    { path: '/posts', label: 'Posts', icon: MessageSquare },
-    { path: '/inbox', label: 'Inbox', icon: MessageSquare },
+    { path: '/search', label: 'Rooms', icon: Search },
+    { path: '/about', label: 'About', icon: Info },
   ]
 
   return (
@@ -61,71 +50,15 @@ export default function Layout() {
               ))}
             </div>
 
-            {/* User Menu / Auth Buttons */}
+            {/* Right side - Admin link */}
             <div className="flex items-center gap-3">
-              {isAuthenticated ? (
-                <div className="relative">
-                  <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-100 transition-colors"
-                  >
-                    <div className="avatar avatar-sm bg-primary-100 text-primary-700">
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
-                    </div>
-                    <span className="hidden sm:block text-sm font-medium text-neutral-700">
-                      {user?.firstName}
-                    </span>
-                    <ChevronDown className="w-4 h-4 text-neutral-400" />
-                  </button>
-
-                  {isDropdownOpen && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-10"
-                        onClick={() => setIsDropdownOpen(false)}
-                      />
-                      <div className="dropdown z-20">
-                        <div className="px-4 py-3 border-b border-neutral-100">
-                          <p className="text-sm font-medium text-neutral-900">
-                            {user?.firstName} {user?.lastName}
-                          </p>
-                          <p className="text-xs text-neutral-500">{user?.email}</p>
-                        </div>
-                        <Link
-                          to="/profile"
-                          className="dropdown-item"
-                          onClick={() => setIsDropdownOpen(false)}
-                        >
-                          <User className="w-4 h-4" />
-                          My Account
-                        </Link>
-                        <button
-                          onClick={handleLogout}
-                          className="w-full dropdown-item text-red-600 hover:bg-red-50"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          Log Out
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Link
-                    to="/login"
-                    className="btn btn-ghost text-sm"
-                  >
-                    Log In
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="btn btn-primary text-sm"
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              )}
+              <Link
+                to="/admin/login"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
+              >
+                <Shield className="w-4 h-4" />
+                <span className="hidden sm:block">Admin</span>
+              </Link>
 
               {/* Mobile menu button */}
               <button

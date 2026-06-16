@@ -29,8 +29,9 @@ export function ToastProvider({ children }) {
   const error = useCallback((message, duration) => addToast(message, 'error', duration), [addToast])
   const warning = useCallback((message, duration) => addToast(message, 'warning', duration), [addToast])
   const info = useCallback((message, duration) => addToast(message, 'info', duration), [addToast])
+  const showToast = info // Alias for backward compatibility
 
-  const value = { toasts, addToast, removeToast, success, error, warning, info }
+  const value = { toasts, addToast, removeToast, success, error, warning, info, showToast }
 
   return (
     <ToastContext.Provider value={value}>
