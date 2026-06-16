@@ -1,0 +1,24 @@
+{
+  "name": "windsor-api",
+  "version": "1.0.0",
+  "description": "Windsor Residence API - Express.js Backend",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.21.0",
+    "supabase": "^2.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
